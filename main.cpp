@@ -1,10 +1,12 @@
 #include <iostream>
-#include <cstring>
 #include <vector>
 #include<cmath>
 #include <nlopt.hpp>
 #include <fstream>
 #include <random>
+# include <pthread.h>
+# include <ctype.h>
+
 #include "load_data.h"
 #include "helpers.h"
 #include "implicitRK4.h"
