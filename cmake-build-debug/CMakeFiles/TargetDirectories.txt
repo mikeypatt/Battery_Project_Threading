@@ -1,0 +1,3 @@
+/Users/michaelpatterson/CLionProjects/Battery_Project_Threading/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/Users/michaelpatterson/CLionProjects/Battery_Project_Threading/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/michaelpatterson/CLionProjects/Battery_Project_Threading/cmake-build-debug/CMakeFiles/Battery_Project_Threading.dir
