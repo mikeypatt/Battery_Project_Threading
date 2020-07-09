@@ -324,6 +324,13 @@ int main() {
         }
     }
 
+    //delete output voltages
+    for(int j =0;j<41;j++){
+        for(int ii=0;ii<no_datasets;ii++){
+            delete[] outputVoltage[j][ii];
+        }
+    }
+
     cout << "finished semistatic" << endl;
 
     //dynamic bit
@@ -501,10 +508,10 @@ int main() {
         //delete output voltages
         for(int j =0;j<41;j++){
             for(int ii=0;ii<no_datasets;ii++){
-                delete[] outputVoltage[j][ii];
+                delete[] outputVoltagedynamic[j][ii];
             }
         }
-        
+
     }
 
 
@@ -1225,8 +1232,6 @@ void static_simulate(vector<vector<double>> *data,double output_voltage[],starti
 
         V[i] = Vc[i] - I[i] * R0;
     }
-
-    cout << V[length-1] << endl;
 
     for(size_t i =0;i<data->size();i++)
         output_voltage[i] = interpolate(time, V, (*data)[i][0] - starting_time, length, true);
