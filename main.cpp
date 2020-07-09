@@ -5,14 +5,13 @@
 #include <nlopt.hpp>
 #include <fstream>
 #include <random>
-
 #include "load_data.h"
 #include "helpers.h"
 #include "implicitRK4.h"
 
 using namespace std;
 
-const int no_datasets = 2;
+const int no_datasets = 16;
 const double OCV_Coef[9] = {162.819296346443,-626.424040821280,994.123599474504,-838.370905010509,395.859371472140,-94.4306297230054,4.31313232297881,3.37833790202489,2.92273089870673};
 
 struct starting_Params{
@@ -132,8 +131,6 @@ struct optData{
 };
 
 int main() {
-
-
 
     vector<vector<double>> data02ConstCurrent;
     vector<vector<double>> data02LongPulse;
@@ -270,7 +267,7 @@ int main() {
 
     // I think this is a vector pointer that points to an array of vector pointer pointers of size number of datasets
     vector<vector<double>> ***fitting_data = new vector<vector<double>>**[no_datasets];
-    fitting_data[0] = CC_02_short_data;//CC_02_CC_data; // TODO change thissss back
+    fitting_data[0] = CC_02_CC_data; // TODO change thissss back
     fitting_data[1] = CC_02_Long_data;
     fitting_data[2] = CC_02_short_data;
 
@@ -349,22 +346,167 @@ int main() {
             dynamic_fit(fitting_data,starting_params,outputVoltagedynamic,dynamic_index,
                     Reff_table, Rct_table, C_table, R0_table,spoints_ref);
         }
-    }
 
-    out_stream.open("dynamic_tables.txt");
-    for(int i=0;i<41;i++){
-        out_stream << R0_table[i] << " " << Reff_table[i] << " " << Rct_table[i] << " " << C_table[i] << endl;
-    }
-    out_stream.close();
-
-    out_stream.open("dynamic_voltage_02C_short.txt");
-    for(int i=0;i<41;i++){
-        int length = (*(fitting_data[0])[i]).size();
-        for(int j=0;j<length;j++){
-            out_stream << (*(fitting_data[0])[i])[j][2] << " " << outputVoltagedynamic[i][0][j] << endl;
+        out_stream.open("dynamic_tables.txt");
+        for(int j=0;j<41;j++){
+            out_stream << Reff_table[j] << " " << Rct_table[j] << " " << C_table[j] << endl;
         }
+        out_stream.close();
+
+
+        out_stream.open("dynamic_voltage_02C_CC.txt");
+        for(int ii=0;i<41;i++){
+            int length = (*(fitting_data[0])[ii]).size();
+            for(int j=0;j<length;j++){
+                out_stream << (*(fitting_data[0])[ii])[j][2] << " " << outputVoltagedynamic[ii][0][j] << endl;
+            }
+        }
+        out_stream.close();
+
+        out_stream.open("dynamic_voltage_02C_long.txt");
+        for(int ii=0;ii<41;ii++){
+            int length = (*(fitting_data[1])[ii]).size();
+            for(int j=0;j<length;j++){
+                out_stream << (*(fitting_data[1])[ii])[j][2] << " " << outputVoltagedynamic[ii][1][j] << endl;
+            }
+        }
+        out_stream.close();
+
+        out_stream.open("dynamic_voltage_02C_short.txt");
+        for(int ii=0;ii<41;ii++){
+            int length = (*(fitting_data[2])[ii]).size();
+            for(int j=0;j<length;j++){
+                out_stream << (*(fitting_data[2])[ii])[j][2] << " " << outputVoltagedynamic[ii][2][j] << endl;
+            }
+        }
+        out_stream.close();
+
+        out_stream.open("dynamic_voltage_03C_CC.txt");
+        for(int ii=0;ii<41;ii++){
+            int length = (*(fitting_data[3])[ii]).size();
+            for(int j=0;j<length;j++){
+                out_stream << (*(fitting_data[3])[ii])[j][2] << " " << outputVoltagedynamic[ii][3][j] << endl;
+            }
+        }
+        out_stream.close();
+
+        out_stream.open("dynamic_voltage_03C_long.txt");
+        for(int ii=0;i<41;i++){
+            int length = (*(fitting_data[4])[i]).size();
+            for(int j=0;j<length;j++){
+                out_stream << (*(fitting_data[4])[i])[j][2] << " " << outputVoltagedynamic[i][4][j] << endl;
+            }
+        }
+        out_stream.close();
+
+        out_stream.open("dynamic_voltage_03C_short.txt");
+        for(int ii=0;ii<41;ii++){
+            int length = (*(fitting_data[5])[ii]).size();
+            for(int j=0;j<length;j++){
+                out_stream << (*(fitting_data[5])[ii])[j][2] << " " << outputVoltagedynamic[ii][5][j] << endl;
+            }
+        }
+        out_stream.close();
+
+        out_stream.open("dynamic_voltage_04C_CC.txt");
+        for(int ii=0;ii<41;ii++){
+            int length = (*(fitting_data[6])[ii]).size();
+            for(int j=0;j<length;j++){
+                out_stream << (*(fitting_data[6])[ii])[j][2] << " " << outputVoltagedynamic[ii][6][j] << endl;
+            }
+        }
+        out_stream.close();
+
+        out_stream.open("dynamic_voltage_04C_long.txt");
+        for(int ii=0;ii<41;ii++){
+            int length = (*(fitting_data[7])[ii]).size();
+            for(int j=0;j<length;j++){
+                out_stream << (*(fitting_data[7])[ii])[j][2] << " " << outputVoltagedynamic[ii][7][j] << endl;
+            }
+        }
+        out_stream.close();
+
+        out_stream.open("dynamic_voltage_04C_short.txt");
+        for(int ii=0;ii<41;ii++){
+            int length = (*(fitting_data[8])[ii]).size();
+            for(int j=0;j<length;j++){
+                out_stream << (*(fitting_data[8])[ii])[j][2] << " " << outputVoltagedynamic[ii][8][j] << endl;
+            }
+        }
+        out_stream.close();
+
+        out_stream.open("dynamic_voltage_05C_CC.txt");
+        for(int ii=0;ii<41;ii++){
+            int length = (*(fitting_data[9])[ii]).size();
+            for(int j=0;j<length;j++){
+                out_stream << (*(fitting_data[9])[ii])[j][2] << " " << outputVoltagedynamic[ii][9][j] << endl;
+            }
+        }
+        out_stream.close();
+
+        out_stream.open("dynamic_voltage_05C_long.txt");
+        for(int ii=0;ii<41;ii++){
+            int length = (*(fitting_data[10])[ii]).size();
+            for(int j=0;j<length;j++){
+                out_stream << (*(fitting_data[10])[ii])[j][2] << " " << outputVoltagedynamic[ii][10][j] << endl;
+            }
+        }
+        out_stream.close();
+
+        out_stream.open("dynamic_voltage_05C_short.txt");
+        for(int ii=0;ii<41;ii++){
+            int length = (*(fitting_data[11])[ii]).size();
+            for(int j=0;j<length;j++){
+                out_stream << (*(fitting_data[11])[ii])[j][2] << " " << outputVoltagedynamic[ii][11][j] << endl;
+            }
+        }
+        out_stream.close();
+
+        out_stream.open("dynamic_voltage_1C_pulse.txt");
+        for(int ii=0;ii<41;ii++){
+            int length = (*(fitting_data[12])[ii]).size();
+            for(int j=0;j<length;j++){
+                out_stream << (*(fitting_data[12])[ii])[j][2] << " " << outputVoltagedynamic[ii][12][j] << endl;
+            }
+        }
+        out_stream.close();
+
+        out_stream.open("dynamic_voltage_drive_long.txt");
+        for(int ii=0;ii<41;ii++){
+            int length = (*(fitting_data[13])[ii]).size();
+            for(int j=0;j<length;j++){
+                out_stream << (*(fitting_data[13])[ii])[j][2] << " " << outputVoltagedynamic[ii][13][j] << endl;
+            }
+        }
+        out_stream.close();
+
+        out_stream.open("dynamic_voltage_drive_short.txt");
+        for(int ii=0;ii<41;ii++){
+            int length = (*(fitting_data[14])[ii]).size();
+            for(int j=0;j<length;j++){
+                out_stream << (*(fitting_data[14])[ii])[j][2] << " " << outputVoltagedynamic[ii][14][j] << endl;
+            }
+        }
+        out_stream.close();
+
+        out_stream.open("dynamic_voltage_pulses.txt");
+        for(int ii=0;ii<41;ii++){
+            int length = (*(fitting_data[15])[ii]).size();
+            for(int j=0;j<length;j++){
+                out_stream << (*(fitting_data[15])[ii])[j][2] << " " << outputVoltagedynamic[ii][15][j] << endl;
+            }
+        }
+        out_stream.close();
+
+        //delete output voltages
+        for(int j =0;j<41;j++){
+            for(int ii=0;ii<no_datasets;ii++){
+                delete[] outputVoltage[j][ii];
+            }
+        }
+        
     }
-    out_stream.close();
+
 
     delete spoints_ref;
 
