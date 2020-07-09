@@ -12,7 +12,7 @@
 
 using namespace std;
 
-const int no_datasets = 1;
+const int no_datasets = 2;
 const double OCV_Coef[9] = {162.819296346443,-626.424040821280,994.123599474504,-838.370905010509,395.859371472140,-94.4306297230054,4.31313232297881,3.37833790202489,2.92273089870673};
 
 struct starting_Params{
@@ -26,7 +26,7 @@ struct starting_Params{
 };
 
 
-struct Thread{
+struct Thread_Static{
 
     int id;
     vector<vector<double>> *data_set;
@@ -38,18 +38,55 @@ struct Thread{
     double C;
     double* answer;
     int length;
+
     starting_Params* ending_data;
     bool final;
 
-    Thread(int id,vector<vector<double>> *data_set,double* output_voltage,starting_Params* starting_data,
-           double R0,double Reff,double Rct,double C,double* answer,int length,starting_Params* ending_data = nullptr, bool final = false):
-            id(id),data_set(data_set),starting_data(starting_data),R0(R0),Reff(Reff),Rct(Rct),C(C),answer(answer),length(length),
+    Thread_Static(int id,vector<vector<double>> *data_set,double* output_voltage,starting_Params* starting_data,
+           double R0,double Reff,double Rct,double C,int length,double* answer = nullptr,starting_Params* ending_data = nullptr, bool final = false):
+            id(id),data_set(data_set),output_voltage(output_voltage),starting_data(starting_data),R0(R0),Reff(Reff),Rct(Rct),C(C),answer(answer),length(length),
             ending_data(ending_data),final(final) {}
 
 };
 
-void *static_sim (void *id);
+struct Thread_Dynamic{
 
+    int id;
+    vector<vector<double>> *data_set;
+    double* output_voltage;
+    starting_Params* starting_data;
+    double R0;
+    double Reff;
+    double Rct;
+    double C;
+    double* answer;
+    int length;
+    double* Reff_table;
+    double* Rct_table;
+    double* C_table;
+    double* R0_table;
+    double* s_points_opt;
+    int index;
+
+    starting_Params* ending_data;
+    bool final;
+
+    Thread_Dynamic(int id,vector<vector<double>> *data_set,double* output_voltage,starting_Params* starting_data,
+                  double R0,double Reff,double Rct,double C,int length,double* Reff_table,double* Rct_table,
+                  double* C_table,double* R0_table,double* s_points_opt,int index,
+                  double* answer = nullptr,starting_Params* ending_data = nullptr, bool final = false):
+            id(id),data_set(data_set),output_voltage(output_voltage),starting_data(starting_data),R0(R0),Reff(Reff),Rct(Rct),C(C),answer(answer),
+            length(length),Reff_table(Reff_table),Rct_table(Rct_table),C_table(C_table),R0_table(R0_table),s_points_opt(s_points_opt),
+            index(index),ending_data(ending_data),final(final) {}
+
+};
+
+
+void *static_sim (void *id);
+void *static_sim_post (void *id);
+
+void *dynamic_sim (void *id);
+void *dynamic_sim_post (void *id);
 
 typedef pair<double,double> pairs;
 double static_objective(unsigned n, const double *x, double *grad, void *my_func_data);
@@ -373,7 +410,7 @@ void dynamic_fit(vector<vector<double>> ***data,starting_Params* carryOvers[][no
 
     nlopt_set_ftol_abs(opt, 1e-30);
     nlopt_set_xtol_rel(opt, 1e-30);
-    nlopt_set_maxeval(opt,80);
+    nlopt_set_maxeval(opt,1);
 
     nlopt_set_min_objective(opt,dynamic_objective,&addData);
     double minf;
@@ -405,18 +442,66 @@ void dynamic_fit(vector<vector<double>> ***data,starting_Params* carryOvers[][no
         }
     }
 
+    //Creating the simulation Threads
+    Thread_Dynamic* simulating_threads[no_datasets];
+    pthread_t simulationid[no_datasets];
+    int sim_id;
 
     // filling up the output voltage data and starting charges for the dataset (index-2)number_of_datasets
-    for(int i=0;i<no_datasets;i++){
+    for(int i = 0;i<no_datasets;i++){
+
         relevant_data_set = (data[i])[index];
-        outputvoltage[index][i] = new double[relevant_data_set->size()];
-        if(index>1)
-            dynamic_simulate(relevant_data_set,outputvoltage[index][i],carryOvers[index][i], x[3], x[0], x[1],x[2],Reff_table,Rct_table,C_table,R0_table,spoints_ref,
-                            index, carryOvers[index-2][i],true);
-        else
-            dynamic_simulate(relevant_data_set,outputvoltage[index][i],carryOvers[index][i], x[3], x[0], x[1],x[2],Reff_table,Rct_table,C_table,R0_table,spoints_ref,
-                             index);
+
+        if(index>1) {
+            carryOvers[index - 2][i] = new starting_Params(0, 0, 0, 0, 0);
+            sim_id = i+1;
+            simulating_threads[i] = new Thread_Dynamic(sim_id,relevant_data_set,outputvoltage[index][i],carryOvers[index][i],x[3], x[0], x[1], x[2],
+                                                      relevant_data_set->size(),Reff_table,Rct_table,C_table,R0_table,spoints_ref,index,nullptr,carryOvers[index - 2][i],true);
+            pthread_create (&simulationid[i],NULL,static_sim_post,(void*) simulating_threads[i]);
+
+        }
+        else {
+            sim_id = i + 1;
+            simulating_threads[i] = new Thread_Dynamic(sim_id,relevant_data_set,outputvoltage[index][i],carryOvers[index][i],x[3], x[0], x[1], x[2],
+                                                       relevant_data_set->size(),Reff_table,Rct_table,C_table,R0_table,spoints_ref,index);
+            pthread_create(&simulationid[i], NULL, static_sim_post, (void *) simulating_threads[i]);
+        }
     }
+
+    for(auto & i : simulationid)
+    {
+        pthread_join (i, NULL) ;
+    }
+
+    for(int i=0;i<no_datasets;i++)
+    {
+        delete simulating_threads[i];
+    }
+
+}
+
+void *dynamic_sim_post (void *producer_parameter)
+{
+
+    //Intialise the structure passed in to thread function
+    Thread_Dynamic* d = (Thread_Dynamic*) producer_parameter;
+    vector<vector<double>> *data = d->data_set;
+    double* output_voltage = d->output_voltage;
+    starting_Params* starting_data = d->starting_data;
+    starting_Params* ending_data = d->ending_data;
+    bool final = d->final;
+    double R0 = d->R0;
+    double Reff = d->Reff;
+    double Rct = d->Rct;
+    double C = d->C;
+    int length = d->length;
+
+    output_voltage = new double[length];
+
+    dynamic_simulate(data,output_voltage,starting_data,R0,Reff,Rct,C,d->Reff_table,d->Rct_table,d->C_table,d->R0_table,
+            d->s_points_opt,d->index,ending_data,final);
+
+    pthread_exit(0);
 
 }
 
@@ -444,28 +529,76 @@ double dynamic_objective(unsigned n, const double *x, double *grad, void *my_fun
         }
     }
 
-
     double *output_voltage  = nullptr;
     double answer = 0;
     size_t length=0;
 
+    //Creating the simulation Threads
+    Thread_Dynamic* simulating_threads[no_datasets];
+    pthread_t simulationid[no_datasets];
+    int sim_id;
+
+    //to put each threads answer in;
+    double answers[no_datasets];
+
     for (int i=0;i<no_datasets;i++){
+
         relevant_data_set = (relevantDataPtr[i])[d->index];
         length = relevant_data_set->size();
-        output_voltage = new double[length];
 
-        //call the simulate function
-        dynamic_simulate(relevant_data_set,output_voltage,d->carryOvers[i],R0,Reff,Rct,
-                        C,d->Reff_table,d->Rct_table,d->C_table,d->R0_table,d->s_points_opt,d->index);
+        sim_id = i+1;
+        simulating_threads[i] = new Thread_Dynamic(sim_id,relevant_data_set,output_voltage,d->carryOvers[i],R0,Reff,Rct,
+                C,length,d->Reff_table,d->Rct_table,d->C_table,d->R0_table,d->s_points_opt,d->index,&answers[i]);
 
-        answer += L2_norm_distance(output_voltage,relevant_data_set,length);
+        pthread_create (&simulationid[i],NULL,dynamic_sim,(void*) simulating_threads[i]);
+    }
 
-        //stops the memory from leaking for the output voltage array
-        delete[] output_voltage;
+    for(auto & i : simulationid)
+    {
+        pthread_join (i, NULL) ;
+    }
+
+    for(int i=0;i<no_datasets;i++)
+    {
+        delete simulating_threads[i];
+        answer += answers[i];
     }
 
     return answer;
+
 }
+
+void *dynamic_sim (void *producer_parameter)
+{
+
+    //Intialise the structure passed in to thread function
+    Thread_Dynamic* d = (Thread_Dynamic *) producer_parameter;
+
+    vector<vector<double>> *data = d->data_set;
+    double* output_voltage = d->output_voltage;
+    starting_Params* starting_data = d->starting_data;
+    double R0 = d->R0;
+    double Reff = d->Reff;
+    double Rct = d->Rct;
+    double C = d->C;
+    int length = d->length;
+
+    output_voltage = new double[length];
+
+    double* answer = d->answer;
+
+    dynamic_simulate(data,output_voltage,starting_data,R0,Reff,Rct,C,d->Reff_table,d->Rct_table,d->C_table,d->R0_table,d->s_points_opt,
+            d->index);
+
+    *answer = L2_norm_distance(output_voltage,data,length);
+
+    //stops the memory from leaking for the output voltage array
+    delete[] output_voltage;
+
+    pthread_exit(0);
+
+}
+
 
 void dynamic_interpolation(vector<vector<double>> *data,double* spoints_ref,int index,double* points,double point,double* table){
     table[index] = point;
@@ -642,7 +775,7 @@ void semiStatic_fit(vector<vector<double>> ***data,double carry_over_parameters[
 
     ub[0] = 1.0; // Reff ub
     ub[1] = 1.0; // Rct ub
-    ub[2] = 1.0;  // C ub
+    ub[2] = 1.0;  //C ub
     ub[3] = 1.0; //R0 ub
 
     double x [number_of_parameters];
@@ -666,7 +799,7 @@ void semiStatic_fit(vector<vector<double>> ***data,double carry_over_parameters[
     nlopt_set_ftol_abs(opt, 1e-30);
     nlopt_set_xtol_rel(opt, 1e-30);
 
-    nlopt_set_maxeval(opt,80);
+    nlopt_set_maxeval(opt,1);
 
     nlopt_set_min_objective(opt,static_objective,&addData);
     double minf;
@@ -704,19 +837,66 @@ void semiStatic_fit(vector<vector<double>> ***data,double carry_over_parameters[
         }
     }
 
+    //Creating the simulation Threads
+    Thread_Static* simulating_threads[no_datasets];
+    pthread_t simulationid[no_datasets];
+    int sim_id;
+
     // filling up the output voltage data and starting charges for the dataset (index-2)number_of_datasets
     for(int i = 0;i<no_datasets;i++){
+
         relevant_data_set = (data[i])[index];
         outputvoltage[index][i] = new double[relevant_data_set->size()];
 
         if(index>1) {
             carryOvers[index - 2][i] = new starting_Params(0, 0, 0, 0, 0);
-            static_simulate(relevant_data_set, outputvoltage[index][i], carryOvers[index][i], x[3], x[0], x[1], x[2],
-                            carryOvers[index - 2][i], true);
+            sim_id = i+1;
+
+            simulating_threads[i] = new Thread_Static(sim_id,relevant_data_set,outputvoltage[index][i],carryOvers[index][i],x[3], x[0], x[1], x[2],
+                    relevant_data_set->size(), nullptr,carryOvers[index - 2][i],true);
+            pthread_create (&simulationid[i],NULL,static_sim_post,(void*) simulating_threads[i]);
+
         }
-        else
-            static_simulate(relevant_data_set,outputvoltage[index][i], carryOvers[index][i],x[3], x[0], x[1],x[2]);
+        else {
+            sim_id = i + 1;
+            simulating_threads[i] = new Thread_Static(sim_id, relevant_data_set, outputvoltage[index][i], carryOvers[index][i],
+                                               x[3], x[0], x[1], x[2], relevant_data_set->size());
+            pthread_create(&simulationid[i], NULL, static_sim_post, (void *) simulating_threads[i]);
+        }
     }
+
+    for(auto & i : simulationid)
+    {
+        pthread_join (i, NULL) ;
+    }
+
+    for(int i=0;i<no_datasets;i++)
+    {
+        delete simulating_threads[i];
+    }
+
+}
+
+void *static_sim_post (void *producer_parameter)
+{
+
+    //Intialise the structure passed in to thread function
+    Thread_Static* thread_struct = (Thread_Static *) producer_parameter;
+    vector<vector<double>> *data = thread_struct->data_set;
+    double* output_voltage = thread_struct->output_voltage;
+    starting_Params* starting_data = thread_struct->starting_data;
+    starting_Params* ending_data = thread_struct->ending_data;
+    bool final = thread_struct->final;
+    double R0 = thread_struct->R0;
+    double Reff = thread_struct->Reff;
+    double Rct = thread_struct->Rct;
+    double C = thread_struct->C;
+    int length = thread_struct->length;
+
+
+    static_simulate(data,output_voltage,starting_data,R0,Reff,Rct,C,ending_data,final);
+
+    pthread_exit(0);
 
 }
 
@@ -751,9 +931,8 @@ double static_objective(unsigned n, const double *x, double *grad, void *my_func
     double answer = 0;
     int length=0;
 
-
     //Creating the simulation Threads
-    Thread* simulating_threads[no_datasets];
+    Thread_Static* simulating_threads[no_datasets];
     pthread_t simulationid[no_datasets];
     int sim_id;
 
@@ -764,20 +943,20 @@ double static_objective(unsigned n, const double *x, double *grad, void *my_func
 
         relevant_data_set = (relevantDataPtr[i])[d->index];
         length = relevant_data_set->size();
-        output_voltage = new double[length];
 
         sim_id = i+1;
-        simulating_threads[i] = new Thread(sim_id,relevant_data_set,output_voltage,d->carryOvers[i],R0,Reff,Rct,C,&answers[i],length);
+        simulating_threads[i] = new Thread_Static(sim_id,relevant_data_set,output_voltage,d->carryOvers[i],R0,Reff,Rct,C,length,&answers[i]);
         pthread_create (&simulationid[i],NULL,static_sim,(void*) simulating_threads[i]);
     }
 
-    for(int i = 0 ; i < no_datasets ; i++)
+    for(auto & i : simulationid)
     {
-        pthread_join (simulationid[i], NULL) ;
+        pthread_join (i, NULL) ;
     }
 
-    for(int i = 0 ; i < no_datasets ; i++)
+    for(int i=0;i<no_datasets;i++)
     {
+        delete simulating_threads[i];
         answer += answers[i];
     }
 
@@ -788,7 +967,7 @@ void *static_sim (void *producer_parameter)
 {
 
     //Intialise the structure passed in to thread function
-    Thread* thread_struct = (Thread *) producer_parameter;
+    Thread_Static* thread_struct = (Thread_Static *) producer_parameter;
 
     vector<vector<double>> *data = thread_struct->data_set;
     double* output_voltage = thread_struct->output_voltage;
@@ -799,14 +978,13 @@ void *static_sim (void *producer_parameter)
     double C = thread_struct->C;
     int length = thread_struct->length;
 
-    double* answer = thread_struct->answer;
+    output_voltage = new double[length];
 
+    double* answer = thread_struct->answer;
 
     static_simulate(data,output_voltage,starting_data,R0,Reff,Rct,C);
 
-
     *answer = L2_norm_distance(output_voltage,data,length);
-
 
     //stops the memory from leaking for the output voltage array
     delete[] output_voltage;
@@ -822,6 +1000,7 @@ void static_simulate(vector<vector<double>> *data,double output_voltage[],starti
 
     vector<double>* new_data = new vector<double>;
     new_data->push_back((*data)[0][0]);
+
     double ittime=0.0;
     for(size_t i=1;i<data->size();i++) {
         if (((*data)[i][0] - (*data)[i-1][0])  > 0.1) {
@@ -905,8 +1084,10 @@ void static_simulate(vector<vector<double>> *data,double output_voltage[],starti
         V[i] = Vc[i] - I[i] * R0;
     }
 
-    for(int i =0;i<data->size();i++)
-        output_voltage[i] = interpolate(time,V,(*data)[i][0]-starting_time,length,true);
+    cout << V[length-1] << endl;
+
+    for(size_t i =0;i<data->size();i++)
+        output_voltage[i] = interpolate(time, V, (*data)[i][0] - starting_time, length, true);
 
     if(final){
         ending_data->Vc = Vc[length-1];
