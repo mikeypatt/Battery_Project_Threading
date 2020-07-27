@@ -28,15 +28,20 @@ double solveKs(unsigned n, const double *x, double *grad, void *my_func_data){
     t2 = d->time + ((1/2.0)+(1/6.0)*sqrt(3))*d->dt;
     y2 = d->Vc + ((1/4.0)+(1/6.0)*sqrt(3))*d->dt*x[0] + (1/4.0)*d->dt*x[1];
 
-    f1 = 0 - (x[0] - stateDeriv_implicit(t1,y1,newdt,d->I,d->OCV1,d->C,d->Rct,d->static_,In1,OCV1_,C_,Rct_));
-    f2 = 0 - (x[1] - stateDeriv_implicit(t2,y2,newdt,d->I,d->OCV1,d->C,d->Rct,d->static_,In1,OCV1_,C_,Rct_));
+    f1 = 0 - (x[0] - stateDeriv_implicit(t1,y1,d->dt,d->I,d->OCV1,d->C,d->Rct,d->static_,In1,OCV1_,C_,Rct_));
+    f2 = 0 - (x[1] - stateDeriv_implicit(t2,y2,d->dt,d->I,d->OCV1,d->C,d->Rct,d->static_,In1,OCV1_,C_,Rct_));
 
     return sqrt(pow(f1,2) + pow(f2,2));
 }
 
-
 double stateDeriv_implicit(double time, double Vc, double dt, double* I, double* OCV1, double* C, double* Rct,bool static_,double newI,double newOCV1,double newC, double newRct) {
-    //double newVc = (OCV1 - Vc)/(C*Rct) - (I/C);
+    if (static_) {
+        double newVc = (newOCV1 - Vc) / (C[0] * Rct[0]) - (newI / C[0]);
+        return newVc;
+    }else{
+        double newVc = (newOCV1 - Vc) / (newC * newRct) - (newI / newC);
+        return newVc;
+    }
     double newVc;
     if (static_)
         newVc = ((dt/2) * (-1 /(Rct[0] * C[0]) - 1/(Rct[0] * C[0])))*Vc + (dt/2) * (OCV1[0]/(Rct[0] * C[0]) + newOCV1/(Rct[0] * C[0])) - (dt/2) * (I[0]/C[0] + newI/C[0]);
@@ -97,7 +102,7 @@ void initial0CV(double Vc,const double OCV_Coef[],double& starting_charge1,doubl
     double lb[number_of_parameters];
     double ub[number_of_parameters];
     lb[0] = starting_charge1 - 0.05*starting_charge1 ; // s1 lb
-    ub[0] = starting_charge1 + 0.05*starting_charge1 ;
+    ub[0] = 1;
     SOptData addData(Vc,OCV_Coef,Rct,R0,I);
 
     nlopt_opt opt;

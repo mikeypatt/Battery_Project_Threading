@@ -17,6 +17,6 @@ double* splitting_points_ref();
 double* splitting_points_opt();
 
 double L2_norm_distance(double calculated_voltage[],std::vector<std::vector<double>> *measured_data,int length);
-
+double Trapz(std::vector<std::vector<double>> *measured_data,double calculated_voltage[]);
 
 #endif //IMPERIAL_BATTERY_HELPERS_H

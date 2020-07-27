@@ -227,4 +227,18 @@ double L2_norm_distance(double calculated_voltage[],vector<vector<double>> *meas
     return sqrt(sum);
 }
 
+double Trapz(vector<vector<double>> *measured_data,double calculated_voltage[]){
+
+    int length = measured_data->size();
+    double dt;
+    double ans=0;
+    for(int i=0;i<length-1;i++){
+        dt = (*measured_data)[i+1][0] - (*measured_data)[i][0];
+        double diff_0 = pow( (*measured_data)[i][2]-calculated_voltage[i],2);
+        double diff_1 = pow( (*measured_data)[i+1][2]-calculated_voltage[i+1],2);
+        ans += ((diff_0+diff_1)/2.0) * dt;
+    }
+    return sqrt(ans);
+}
+
 
