@@ -149,6 +149,22 @@ double* splitting_points_ref(){
     return split_points;
 }
 
+double* splitting_points_new(){
+
+    int length = 86;
+    double* split_points = new double[length];
+
+    // segments of the break points
+    split_points[0] = 0.15;
+    for(int i = 1;i<length;i++){
+        split_points[i] =  split_points[i-1] + 0.01;
+    }
+    return split_points;
+}
+
+
+
+
 //vector<vector<double>> **dataSplitter(vector<vector<double>> data,double split_points[],int charge_points_length){
 //
 //    double minimum = 0,maximum =0;

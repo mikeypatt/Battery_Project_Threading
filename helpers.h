@@ -15,6 +15,7 @@ void polyfit(std::vector<std::vector<double>> *data,double y[],int length,const 
 std::vector<std::vector<double>> **dataSplitter(std::vector<std::vector<double>> data, double split_points[],int charge_points_length);
 double* splitting_points_ref();
 double* splitting_points_opt();
+double* splitting_points_new();
 
 double L2_norm_distance(double calculated_voltage[],std::vector<std::vector<double>> *measured_data,int length);
 double Trapz(std::vector<std::vector<double>> *measured_data,double calculated_voltage[]);

@@ -14,7 +14,7 @@
 
 using namespace std;
 
-const int no_datasets = 16;
+const int no_datasets = 2;
 const double OCV_Coef[9] = {162.819296346443,-626.424040821280,994.123599474504,-838.370905010509,395.859371472140,-94.4306297230054,4.31313232297881,3.37833790202489,2.92273089870673};
 const double R0_Coef[9] = {0.428373375339626,-3.09155625471716, 8.49955501406088,-12.1797208311519,10.1834668524870,-5.16594525582102,1.57736163925228,-0.271762771100002,0.0460650738087307};
 
@@ -134,7 +134,7 @@ struct optData{
             C_table(C_table),R0_table(R0_table),s_points_opt(s_points_opt){}
 };
 
-double static_sim_mini(vector<vector<double>> *data,starting_Params* starting_data,double Reff,double Rct,double C);
+double static_sim_mini(vector<vector<double>> *data,starting_Params* starting_data,double R0,double Reff,double Rct,double C);
 double OCV_Con(unsigned n, const double *x, double *grad, void *my_func_data){
 
     optData *d = (optData*) my_func_data;
@@ -144,7 +144,7 @@ double OCV_Con(unsigned n, const double *x, double *grad, void *my_func_data){
         starting_Params *param = d->carryOvers[i];
         vector<vector<double>> ***relevantDataPtr = d->data;
         double voltage = (*(relevantDataPtr[i])[d->index])[1][2];
-        inter = voltage - static_sim_mini(relevantDataPtr[i][d->index], param, x[0], x[1], x[2]);
+        inter = voltage - static_sim_mini(relevantDataPtr[i][d->index], param,x[3], x[0], x[1], x[2]);
         ans += pow(inter, 2.0);
     }
 
@@ -160,7 +160,7 @@ double startingV_con_1(unsigned n, const double *x, double *grad, void *my_func_
         vector<vector<double>> ***relevantDataPtr = d->data;
         double current = (*(relevantDataPtr[i])[d->index])[0][1];
         double voltage = (*(relevantDataPtr[i])[d->index])[0][2];
-        ans+= pow(voltage - (x[3+i] - current * (polyfit((*relevantDataPtr[i][d->index])[0][3],R0_Coef)-0.003)),2.0);
+        ans+= pow(voltage - (x[4+i] - current * x[3]),2.0);
     }
 
     return sqrt(ans);
@@ -244,9 +244,9 @@ int main() {
     readInData(CC_pulses,dataPulses);
     dataPulses.pop_back();
 
-    double* spoints_ref = splitting_points_opt();
+    double* spoints_ref = splitting_points_new();
 
-    int charge_point_length = 11;
+    int charge_point_length = 86;
     //split the data into the different opt bits
     vector<vector<double>> ** CC_02_CC_data;
     CC_02_CC_data = dataSplitter(data02ConstCurrent,spoints_ref,charge_point_length);
@@ -333,13 +333,13 @@ int main() {
     double C_table[charge_point_length];
 
     // creates an struct for the starting values
-    starting_Params* starting_params[41][no_datasets];
+    starting_Params* starting_params[86][no_datasets];
 
-    double carry_over_parameters[4] = {0.123611,0.0136325,0.32427,0.0230426};
+    double carry_over_parameters[3] = {0.123611,0.0136325,0.32427};
     double* outputVoltage[charge_point_length][no_datasets];
 
     //reverse iterates from a high soc to a lower one
-    for(int i=40;i>=0;i--){
+    for(int i=85;i>=0;i--){
         semiStatic_fit(fitting_data,carry_over_parameters,starting_params,outputVoltage,
                        i,Reff_table, Rct_table, C_table, R0_table);
     }
@@ -507,9 +507,9 @@ int main() {
     cout << "finished semistatic" << endl;
 
     //dynamic bit
-    double* outputVoltagedynamic[11][no_datasets];
-    int order[11];
-    for(int i=0;i<11;i++)
+    double* outputVoltagedynamic[86][no_datasets];
+    int order[86];
+    for(int i=0;i<86;i++)
         order[i] = i;
     int dynamic_index = 0;
 
@@ -528,14 +528,14 @@ int main() {
         }
 
         out_stream.open("dynamic_tables.txt");
-        for(int j=0;j<11;j++){
+        for(int j=0;j<charge_point_length;j++){
             out_stream << Reff_table[j] << " " << Rct_table[j] << " " << C_table[j] << endl;
         }
         out_stream.close();
 
 
         out_stream.open("dynamic_voltage_02C_CC.txt");
-        for(int ii=0;i<11;i++){
+        for(int ii=0;i<charge_point_length;i++){
             int length = (*(fitting_data[0])[ii]).size();
             for(int j=0;j<length;j++){
                 out_stream << (*(fitting_data[0])[ii])[j][2] << " " << outputVoltagedynamic[ii][0][j] << endl;
@@ -544,7 +544,7 @@ int main() {
         out_stream.close();
 
         out_stream.open("dynamic_voltage_02C_long.txt");
-        for(int ii=0;ii<11;ii++){
+        for(int ii=0;ii<charge_point_length;ii++){
             int length = (*(fitting_data[1])[ii]).size();
             for(int j=0;j<length;j++){
                 out_stream << (*(fitting_data[1])[ii])[j][2] << " " << outputVoltagedynamic[ii][1][j] << endl;
@@ -553,7 +553,7 @@ int main() {
         out_stream.close();
 
         out_stream.open("dynamic_voltage_02C_short.txt");
-        for(int ii=0;ii<11;ii++){
+        for(int ii=0;ii<charge_point_length;ii++){
             int length = (*(fitting_data[2])[ii]).size();
             for(int j=0;j<length;j++){
                 out_stream << (*(fitting_data[2])[ii])[j][2] << " " << outputVoltagedynamic[ii][2][j] << endl;
@@ -562,7 +562,7 @@ int main() {
         out_stream.close();
 
         out_stream.open("dynamic_voltage_03C_CC.txt");
-        for(int ii=0;ii<11;ii++){
+        for(int ii=0;ii<charge_point_length;ii++){
             int length = (*(fitting_data[3])[ii]).size();
             for(int j=0;j<length;j++){
                 out_stream << (*(fitting_data[3])[ii])[j][2] << " " << outputVoltagedynamic[ii][3][j] << endl;
@@ -571,7 +571,7 @@ int main() {
         out_stream.close();
 
         out_stream.open("dynamic_voltage_03C_long.txt");
-        for(int ii=0;ii<11;ii++){
+        for(int ii=0;ii<charge_point_length;ii++){
             int length = (*(fitting_data[4])[ii]).size();
             for(int j=0;j<length;j++){
                 out_stream << (*(fitting_data[4])[ii])[j][2] << " " << outputVoltagedynamic[ii][4][j] << endl;
@@ -580,7 +580,7 @@ int main() {
         out_stream.close();
 
         out_stream.open("dynamic_voltage_03C_short.txt");
-        for(int ii=0;ii<11;ii++){
+        for(int ii=0;ii<charge_point_length;ii++){
             int length = (*(fitting_data[5])[ii]).size();
             for(int j=0;j<length;j++){
                 out_stream << (*(fitting_data[5])[ii])[j][2] << " " << outputVoltagedynamic[ii][5][j] << endl;
@@ -589,7 +589,7 @@ int main() {
         out_stream.close();
 
         out_stream.open("dynamic_voltage_04C_CC.txt");
-        for(int ii=0;ii<11;ii++){
+        for(int ii=0;ii<charge_point_length;ii++){
             int length = (*(fitting_data[6])[ii]).size();
             for(int j=0;j<length;j++){
                 out_stream << (*(fitting_data[6])[ii])[j][2] << " " << outputVoltagedynamic[ii][6][j] << endl;
@@ -598,7 +598,7 @@ int main() {
         out_stream.close();
 
         out_stream.open("dynamic_voltage_04C_long.txt");
-        for(int ii=0;ii<11;ii++){
+        for(int ii=0;ii<charge_point_length;ii++){
             int length = (*(fitting_data[7])[ii]).size();
             for(int j=0;j<length;j++){
                 out_stream << (*(fitting_data[7])[ii])[j][2] << " " << outputVoltagedynamic[ii][7][j] << endl;
@@ -607,7 +607,7 @@ int main() {
         out_stream.close();
 
         out_stream.open("dynamic_voltage_04C_short.txt");
-        for(int ii=0;ii<11;ii++){
+        for(int ii=0;ii<charge_point_length;ii++){
             int length = (*(fitting_data[8])[ii]).size();
             for(int j=0;j<length;j++){
                 out_stream << (*(fitting_data[8])[ii])[j][2] << " " << outputVoltagedynamic[ii][8][j] << endl;
@@ -616,7 +616,7 @@ int main() {
         out_stream.close();
 
         out_stream.open("dynamic_voltage_05C_CC.txt");
-        for(int ii=0;ii<11;ii++){
+        for(int ii=0;ii<charge_point_length;ii++){
             int length = (*(fitting_data[9])[ii]).size();
             for(int j=0;j<length;j++){
                 out_stream << (*(fitting_data[9])[ii])[j][2] << " " << outputVoltagedynamic[ii][9][j] << endl;
@@ -625,7 +625,7 @@ int main() {
         out_stream.close();
 
         out_stream.open("dynamic_voltage_05C_long.txt");
-        for(int ii=0;ii<11;ii++){
+        for(int ii=0;ii<charge_point_length;ii++){
             int length = (*(fitting_data[10])[ii]).size();
             for(int j=0;j<length;j++){
                 out_stream << (*(fitting_data[10])[ii])[j][2] << " " << outputVoltagedynamic[ii][10][j] << endl;
@@ -634,7 +634,7 @@ int main() {
         out_stream.close();
 
         out_stream.open("dynamic_voltage_05C_short.txt");
-        for(int ii=0;ii<11;ii++){
+        for(int ii=0;ii<charge_point_length;ii++){
             int length = (*(fitting_data[11])[ii]).size();
             for(int j=0;j<length;j++){
                 out_stream << (*(fitting_data[11])[ii])[j][2] << " " << outputVoltagedynamic[ii][11][j] << endl;
@@ -643,7 +643,7 @@ int main() {
         out_stream.close();
 
         out_stream.open("dynamic_voltage_1C_pulse.txt");
-        for(int ii=0;ii<11;ii++){
+        for(int ii=0;ii<charge_point_length;ii++){
             int length = (*(fitting_data[12])[ii]).size();
             for(int j=0;j<length;j++){
                 out_stream << (*(fitting_data[12])[ii])[j][2] << " " << outputVoltagedynamic[ii][12][j] << endl;
@@ -652,7 +652,7 @@ int main() {
         out_stream.close();
 
         out_stream.open("dynamic_voltage_drive_long.txt");
-        for(int ii=0;ii<11;ii++){
+        for(int ii=0;ii<charge_point_length;ii++){
             int length = (*(fitting_data[13])[ii]).size();
             for(int j=0;j<length;j++){
                 out_stream << (*(fitting_data[13])[ii])[j][2] << " " << outputVoltagedynamic[ii][13][j] << endl;
@@ -661,7 +661,7 @@ int main() {
         out_stream.close();
 
         out_stream.open("dynamic_voltage_drive_short.txt");
-        for(int ii=0;ii<11;ii++){
+        for(int ii=0;ii<charge_point_length;ii++){
             int length = (*(fitting_data[14])[ii]).size();
             for(int j=0;j<length;j++){
                 out_stream << (*(fitting_data[14])[ii])[j][2] << " " << outputVoltagedynamic[ii][14][j] << endl;
@@ -670,7 +670,7 @@ int main() {
         out_stream.close();
 
         out_stream.open("dynamic_voltage_pulses.txt");
-        for(int ii=0;ii<11;ii++){
+        for(int ii=0;ii<charge_point_length;ii++){
             int length = (*(fitting_data[15])[ii]).size();
             for(int j=0;j<length;j++){
                 out_stream << (*(fitting_data[15])[ii])[j][2] << " " << outputVoltagedynamic[ii][15][j] << endl;
@@ -679,14 +679,12 @@ int main() {
         out_stream.close();
 
         //delete output voltages
-        for(int j =0;j<11;j++){
+        for(int j =0;j<charge_point_length;j++){
             for(int ii=0;ii<no_datasets;ii++){
                 delete[] outputVoltagedynamic[j][ii];
             }
         }
-
     }
-
 
     delete spoints_ref;
 
@@ -697,7 +695,7 @@ void dynamic_fit(vector<vector<double>> ***data,starting_Params* carryOvers[][no
         double* outputvoltage[][no_datasets],int index,double Reff_table[],double Rct_table[],
         double C_table[],double R0_table[],double spoints_ref[]){
 
-    const int number_of_parameters = 3 + no_datasets*3;
+    const int number_of_parameters = 4 + no_datasets*3;
 
     double lb[number_of_parameters];
     double ub[number_of_parameters];
@@ -706,25 +704,26 @@ void dynamic_fit(vector<vector<double>> ***data,starting_Params* carryOvers[][no
     x[0] = Reff_table[index];
     x[1] = Rct_table[index];
     x[2] = C_table[index];
+    x[3] = R0_table[index];
 
-    if(index==10 || index==9){
+    if(index==85 || index==84){
         for(int i =0;i<no_datasets;i++){
             //starting Vcs
-            x[3+i] = (*data[i][index])[0][2] + (polyfit((*data[i][index])[0][3],R0_Coef)-0.003) * (*data[i][index])[0][1];
+            x[4+i] = (*data[i][index])[0][2] + x[3] * (*data[i][index])[0][1];
             //starting S1
-            x[3+no_datasets+i] = (*data[i][index])[0][3];
-            initial0CV(x[3+i],OCV_Coef,x[3+no_datasets+i],(polyfit((*data[i][index])[0][3],R0_Coef)-0.003),x[1],(*data[i][index])[0][1]);
+            x[4+no_datasets+i] = (*data[i][index])[0][3];
+            initial0CV(x[3+i],OCV_Coef,x[4+no_datasets+i],x[3],x[1],(*data[i][index])[0][1]);
             //setting S2 = S1
-            x[3+(2*no_datasets)+i] = x[3+no_datasets+i];
+            x[4+(2*no_datasets)+i] = x[4+no_datasets+i];
         }
     }else{
         for(int i =0;i<no_datasets;i++){
             //starting Vcs
-            x[3+i] = carryOvers[index][i]->Vc;
+            x[4+i] = carryOvers[index][i]->Vc;
             //starting S1
-            x[3+no_datasets+i] =carryOvers[index][i]->starting_charge1;
+            x[4+no_datasets+i] =carryOvers[index][i]->starting_charge1;
             //setting S2
-            x[3+(2*no_datasets)+i] = carryOvers[index][i]->starting_charge2;
+            x[4+(2*no_datasets)+i] = carryOvers[index][i]->starting_charge2;
         }
     }
 
@@ -733,25 +732,28 @@ void dynamic_fit(vector<vector<double>> ***data,starting_Params* carryOvers[][no
     ub[0] = 0.7;
     ub[1] = 0.1;
 
-    lb[2] = 0.001;
-    ub[2]  = 1;
+    lb[2] = x[2] - 0.05*x[2];
+    ub[2]  = x[2] + 0.05*x[2];
+
+    lb[3] = x[3] - 0.05*x[3];
+    ub[3]  = x[3] + 0.05*x[3];
 
     for(int i =0;i<no_datasets;i++)
     {
-        if(index==10 || index==9) {
-            ub[3+i] = x[3+i];
-            lb[3+i] = x[3+i];
-            ub[3+no_datasets+i] = x[3+no_datasets+i];
-            lb[3+no_datasets+i] =  x[3+no_datasets+i];
-            ub[3+(2*no_datasets)+i] = x[3+(2*no_datasets)+i];
-            lb[3+(2*no_datasets)+i] = x[3+(2*no_datasets)+i];
+        if(index==85 || index==84) {
+            ub[4+i] = x[4+i];
+            lb[4+i] = x[4+i];
+            ub[4+no_datasets+i] = x[4+no_datasets+i];
+            lb[4+no_datasets+i] =  x[4+no_datasets+i];
+            ub[4+(2*no_datasets)+i] = x[4+(2*no_datasets)+i];
+            lb[4+(2*no_datasets)+i] = x[4+(2*no_datasets)+i];
         }else{
-            ub[3+i] = x[3+i] + 0.03*x[3+i];
-            lb[3+i] = x[3+i] - 0.03*x[3+i];
-            ub[3+no_datasets+i] = x[3+no_datasets+i] + 0.03*x[3+no_datasets+i];
-            lb[3+no_datasets+i] = x[3+no_datasets+i] - 0.03*x[3+no_datasets+i];
-            ub[3 + (2 * no_datasets) + i] = x[3 + (2 * no_datasets) + i] + 0.03*x[3 + (2 * no_datasets) + i];
-            lb[3 + (2 * no_datasets) + i] = x[3 + (2 * no_datasets) + i] - 0.03*x[3 + (2 * no_datasets) + i];
+            ub[4+i] = x[4+i] + 0.03*x[4+i];
+            lb[4+i] = x[4+i] - 0.03*x[4+i];
+            ub[4+no_datasets+i] = x[4+no_datasets+i] + 0.03*x[4+no_datasets+i];
+            lb[4+no_datasets+i] = x[4+no_datasets+i] - 0.03*x[4+no_datasets+i];
+            ub[4 + (2 * no_datasets) + i] = x[4 + (2 * no_datasets) + i] + 0.03*x[4 + (2 * no_datasets) + i];
+            lb[4 + (2 * no_datasets) + i] = x[4 + (2 * no_datasets) + i] - 0.03*x[4 + (2 * no_datasets) + i];
         }
     }
 
@@ -773,7 +775,7 @@ void dynamic_fit(vector<vector<double>> ***data,starting_Params* carryOvers[][no
     nlopt_add_equality_constraint(opt,startingV_con_1, &addData, 1e-30);
     nlopt_add_equality_constraint(opt,OCV_Con, &addData, 1e-30);
     //nlopt_add_inequality_constraint(opt,charges_con, &addData, 1e-8);
-    nlopt_set_min_objective(opt,static_objective,&addData);
+    nlopt_set_min_objective(opt,dynamic_objective,&addData);
 
     nlopt_set_maxeval(opt,10);
     double minf;
@@ -792,13 +794,14 @@ void dynamic_fit(vector<vector<double>> ***data,starting_Params* carryOvers[][no
     Reff_table[index] = x[0];
     Rct_table[index] = x[1];
     C_table[index] = x[2];
+    R0_table[index] = x[3];
 
     vector<vector<double>>* relevant_data_set = nullptr;
 
     for (int i = 0; i<no_datasets;i++) {
-        carryOvers[index][i]->Vc = x[3+i];
-        carryOvers[index][i]->starting_charge1 = x[3+no_datasets+i];
-        carryOvers[index][i]->starting_charge2 = x[3+(2*no_datasets)+i];
+        carryOvers[index][i]->Vc = x[4+i];
+        carryOvers[index][i]->starting_charge1 = x[4+no_datasets+i];
+        carryOvers[index][i]->starting_charge2 = x[4+(2*no_datasets)+i];
     }
 
     //Creating the simulation Threads
@@ -877,9 +880,9 @@ double dynamic_objective(unsigned n, const double *x, double *grad, void *my_fun
     vector<vector<double>>* relevant_data_set = nullptr;
 
     for (int i = 0; i < no_datasets; i++) {
-        d->carryOvers[i]->Vc = x[3+i];
-        d->carryOvers[i]->starting_charge1 = x[3+no_datasets+i];
-        d->carryOvers[i]->starting_charge2 = x[3+(2*no_datasets)+i];
+        d->carryOvers[i]->Vc = x[4+i];
+        d->carryOvers[i]->starting_charge1 = x[4+no_datasets+i];
+        d->carryOvers[i]->starting_charge2 = x[4+(2*no_datasets)+i];
     }
 
 
@@ -957,7 +960,7 @@ void *dynamic_sim (void *producer_parameter)
 void dynamic_interpolation(vector<vector<double>> *data,double* spoints_ref,int index,double* points,double point,double* table){
     table[index] = point;
     for(int i=0;i<data->size();i++){
-        points[i] = interpolate(spoints_ref,table,(*data)[i][3],11,true);
+        points[i] = interpolate(spoints_ref,table,(*data)[i][3],41,true);
     }
 }
 
@@ -970,32 +973,28 @@ void dynamic_simulate(vector<vector<double>> *data,double output_voltage[],start
 
     double starting_time = (*data)[0][0];
 
-    int length__ = data->size();
-
-    double* _R0_ = new double[length__];
-    for(int i=0;i<length__;i++) {
-        _R0_[i] = polyfit((*data)[i][3], R0_Coef)-0.003;
-    }
 
 
     // interpolation functions
     double* _Reff = new double[size];
     double* _Rct= new double[size];
     double* _C= new double[size];
+    double* _R0= new double[size];
 
     dynamic_interpolation(data,spoints_ref,index,_Reff,Reff,Reff_table);
     dynamic_interpolation(data,spoints_ref,index,_Rct,Rct,Rct_table);
     dynamic_interpolation(data,spoints_ref,index,_C,C,C_table);
+    dynamic_interpolation(data,spoints_ref,index,_R0,R0,R0_table);
 
     vector<double>* new_data = new vector<double>;
     new_data->push_back((*data)[0][0]);
     double ittime=0.0;
     for(size_t i=1;i<data->size();i++) {
-        if (((*data)[i][0] - (*data)[i-1][0])  > 0.05) {
+        if (((*data)[i][0] - (*data)[i-1][0]+0.1)  > 0.1) {
             ittime = (*data)[i - 1][0];
             //while time is smaller than the next one
             while (ittime < (*data)[i][0]) {
-                ittime += 0.05;
+                ittime += 0.1;
                 new_data->push_back(ittime);
             }
         }else{
@@ -1021,7 +1020,7 @@ void dynamic_simulate(vector<vector<double>> *data,double output_voltage[],start
         Reff_[i] = interpolate(data,_Reff,time[i] , true);
         Rct_[i] = interpolate(data,_Rct,time[i] , true);
         C_[i] = interpolate(data,_C,time[i] , true);
-        R0_[i] = interpolate(data,_R0_[i],time[i] , true);
+        R0_[i] = interpolate(data,_R0[i],time[i] , true);
         if(i>0){
             dt_[i-1] = time[i] - time[i-1];
         }
@@ -1032,7 +1031,7 @@ void dynamic_simulate(vector<vector<double>> *data,double output_voltage[],start
     delete[] _Reff;
     delete[] _Rct;
     delete[] _C;
-    delete[] _R0_;
+    delete[] _R0;
 
     for(int i=1;i<length;i++){
         dt[i-1] = time[i] - time[i-1];
@@ -1062,7 +1061,7 @@ void dynamic_simulate(vector<vector<double>> *data,double output_voltage[],start
     I2[0] = ((OCV1[0] - Vc[0]) / Rct_[0]) - ((OCV2[0] - OCV1[0]) / Reff_[0]);
     I2_bar[0] = (OCV2[0] - OCV1[0]) / Reff_[0];
 
-    double odeI[2];
+    double newI,newOCV,Fn,newC,newRct;
     for(size_t i=1;i<length;i++){
 
         //calculating stuff from the previous timestep
@@ -1072,9 +1071,12 @@ void dynamic_simulate(vector<vector<double>> *data,double output_voltage[],start
         OCV1[i] = polyfit(S1[i],OCV_Coef);
         OCV2[i] = polyfit(S2[i],OCV_Coef);
 
-        odeI[0] = I[i - 1];
-        odeI[1] = I[i];
-        Vc[i] = implicitRK4(time[i-1], Vc[i-1], dt[i-1],odeI, &OCV1[i - 1], &C_[i-1], &Rct_[i-1],false);
+        newI =  (I[i - 1] + I[i])/2.0;
+        newOCV =  (OCV1[i-1] + OCV1[i])/2.0;
+        newC =  (C_[i] + C_[i-1])/2.0;
+        newRct =  (Rct_[i] + Rct_[i-1])/2.0;
+        Fn = (newOCV/(newC*newRct) - newI/newC);
+        Vc[i] = Vc[i-1] * exp(-dt[i-1]/(newC*newRct)) + newC*newRct * Fn * (1 - exp(-dt[i-1]/(newC*newRct)));
 
         I2_bar[i] = (OCV2[i] - OCV1[i]) / Reff_[i];
 
@@ -1123,37 +1125,39 @@ void semiStatic_fit(vector<vector<double>> ***data,double carry_over_parameters[
         starting_Params* carryOvers[][no_datasets],double* outputvoltage[][no_datasets],int index,
         double Reff_table[],double Rct_table[],double C_table[],double R0_table[]){
 
-    const int number_of_parameters = 3 + no_datasets*3;
+    const int number_of_parameters = 4 + no_datasets*3;
 
     double lb[number_of_parameters];
     double ub[number_of_parameters];
     double x [number_of_parameters];
 
-    if(index==10 || index==9){
+    if(index==85 || index==84){
         x[0] = carry_over_parameters[0];
         x[1] = carry_over_parameters[1];
-        x[2] = carry_over_parameters[2];
+        x[2] = 0.347126;//carry_over_parameters[2];
+        x[3] =  (polyfit((*data[0][index])[0][3], R0_Coef));
 
         for(int i =0;i<no_datasets;i++){
             //starting Vcs
-            x[3+i] = (*data[i][index])[0][2] + (polyfit((*data[i][index])[0][3],R0_Coef)-0.003) * (*data[i][index])[0][1];
+            x[4+i] = (*data[i][index])[0][2] + x[3] * (*data[i][index])[0][1];
             //starting S1
-            x[3+no_datasets+i] = (*data[i][index])[0][3];
-            initial0CV(x[3+i],OCV_Coef,x[3+no_datasets+i],(polyfit((*data[i][index])[0][3],R0_Coef)-0.003),x[1],(*data[i][index])[0][1]);
+            x[4+no_datasets+i] = (*data[i][index])[0][3];
+            initial0CV(x[4+i],OCV_Coef,x[4+no_datasets+i],x[3],x[1],(*data[i][index])[0][1]);
             //setting S2 = S1
-            x[3+(2*no_datasets)+i] = x[3+no_datasets+i];
+            x[4+(2*no_datasets)+i] = x[4+no_datasets+i];
         }
     }else{
         x[0] = Reff_table[index+2];
         x[1] = Rct_table[index+2];
-        x[2] = C_table[index+2];
+        x[2] = 0.347126;
+        x[3] = R0_table[index+2];
         for(int i =0;i<no_datasets;i++){
             //starting Vcs
-            x[3+i] = carryOvers[index][i]->Vc;
+            x[4+i] = carryOvers[index][i]->Vc;
             //starting S1
-            x[3+no_datasets+i] =carryOvers[index][i]->starting_charge1;
+            x[4+no_datasets+i] =carryOvers[index][i]->starting_charge1;
             //setting S2
-            x[3+(2*no_datasets)+i] = carryOvers[index][i]->starting_charge2;
+            x[4+(2*no_datasets)+i] = carryOvers[index][i]->starting_charge2;
         }
     }
 
@@ -1165,22 +1169,25 @@ void semiStatic_fit(vector<vector<double>> ***data,double carry_over_parameters[
     lb[2] = 0.001;
     ub[2]  = 1;
 
+    lb[3] = 0.001;
+    ub[3]  = 2;
+
     for(int i =0;i<no_datasets;i++)
     {
-        if(index==10 || index==9) {
-            ub[3+i] = x[3+i];
-            lb[3+i] = x[3+i];
-            ub[3+no_datasets+i] = x[3+no_datasets+i];
-            lb[3+no_datasets+i] =  x[3+no_datasets+i];
-            ub[3+(2*no_datasets)+i] = x[3+(2*no_datasets)+i];
-            lb[3+(2*no_datasets)+i] = x[3+(2*no_datasets)+i];
+        if(index==85 || index==84) {
+            ub[4+i] = x[4+i];
+            lb[4+i] = x[4+i];
+            ub[4+no_datasets+i] = x[4+no_datasets+i];
+            lb[4+no_datasets+i] =  x[4+no_datasets+i];
+            ub[4+(2*no_datasets)+i] = x[4+(2*no_datasets)+i];
+            lb[4+(2*no_datasets)+i] = x[4+(2*no_datasets)+i];
         }else{
-            ub[3+i] = x[4+i] + 0.03*x[3+i];
-            lb[3+i] = x[4+i] - 0.03*x[3+i];
-            ub[3+no_datasets+i] = x[3+no_datasets+i] + 0.03*x[3+no_datasets+i];
-            lb[3+no_datasets+i] = x[3+no_datasets+i] - 0.03*x[3+no_datasets+i];
-            ub[3 + (2 * no_datasets) + i] = x[3 + (2 * no_datasets) + i] + 0.03*x[3 + (2 * no_datasets) + i];
-            lb[3 + (2 * no_datasets) + i] = x[3 + (2 * no_datasets) + i] - 0.03*x[3 + (2 * no_datasets) + i];
+            ub[4+i] = x[4+i] + 0.03*x[4+i];
+            lb[4+i] = x[4+i] - 0.03*x[4+i];
+            ub[4+no_datasets+i] = x[4+no_datasets+i] + 0.03*x[4+no_datasets+i];
+            lb[4+no_datasets+i] = x[4+no_datasets+i] - 0.03*x[4+no_datasets+i];
+            ub[4 + (2 * no_datasets) + i] = x[4 + (2 * no_datasets) + i] + 0.03*x[4 + (2 * no_datasets) + i];
+            lb[4 + (2 * no_datasets) + i] = x[4 + (2 * no_datasets) + i] - 0.03*x[4 + (2 * no_datasets) + i];
         }
     }
 
@@ -1204,7 +1211,7 @@ void semiStatic_fit(vector<vector<double>> ***data,double carry_over_parameters[
     //nlopt_add_inequality_constraint(opt,charges_con, &addData, 1e-8);
     nlopt_set_min_objective(opt,static_objective,&addData);
 
-    nlopt_set_maxeval(opt,10);
+    nlopt_set_maxeval(opt,1);
     double minf;
     int res = nlopt_optimize(opt, x, &minf);
 
@@ -1226,15 +1233,15 @@ void semiStatic_fit(vector<vector<double>> ***data,double carry_over_parameters[
     carry_over_parameters[0] = x[0];
     carry_over_parameters[1] = x[1];
     carry_over_parameters[2] = x[2];
-    carry_over_parameters[3] = x[3];
+
 
 
     vector<vector<double>>* relevant_data_set = nullptr;
 
     for (int i = 0; i<no_datasets;i++) {
-        carryOvers[index][i]->Vc = x[3+i];
-        carryOvers[index][i]->starting_charge1 = x[3+no_datasets+i];
-        carryOvers[index][i]->starting_charge2 = x[3+(2*no_datasets)+i];
+        carryOvers[index][i]->Vc = x[4+i];
+        carryOvers[index][i]->starting_charge1 = x[4+no_datasets+i];
+        carryOvers[index][i]->starting_charge2 = x[4+(2*no_datasets)+i];
     }
 
 
@@ -1312,15 +1319,15 @@ double static_objective(unsigned n, const double *x, double *grad, void *my_func
     vector<vector<double>> ***relevantDataPtr = d->data;
     vector<vector<double>>* relevant_data_set = nullptr;
 
-    if (d->index == 40 ||d->index == 39) {
+    if (d->index == 85 ||d->index == 84) {
         for (int i = 0; i < no_datasets; i++) {
-            d->carryOvers[i] = new starting_Params(x[3+i],x[3+no_datasets+i],x[3+(2*no_datasets)+i],0,0);
+            d->carryOvers[i] = new starting_Params(x[4+i],x[4+no_datasets+i],x[4+(2*no_datasets)+i],0,0);
         }
     }else{
         for (int i = 0; i < no_datasets; i++) {
-            d->carryOvers[i]->Vc = x[3+i];
-            d->carryOvers[i]->starting_charge1 = x[3+no_datasets+i];
-            d->carryOvers[i]->starting_charge2 = x[3+(2*no_datasets)+i];
+            d->carryOvers[i]->Vc = x[4+i];
+            d->carryOvers[i]->starting_charge1 = x[4+no_datasets+i];
+            d->carryOvers[i]->starting_charge2 = x[4+(2*no_datasets)+i];
         }
     }
 
@@ -1395,22 +1402,15 @@ void static_simulate(vector<vector<double>> *data,double output_voltage[],starti
 
     double starting_time = (*data).at(0).at(0);
 
-    int length__ = data->size();
-
-    double* _R0_ = new double[length__];
-    for(int i=0;i<length__;i++) {
-        _R0_[i] = polyfit((*data)[i][3], R0_Coef)-0.003;
-    }
-
     vector<double>* new_data = new vector<double>;
     new_data->push_back((*data)[0][0]);
     double ittime=0.0;
     for(size_t i=1;i<data->size();i++) {
-        if (((*data)[i][0] - (*data)[i-1][0])  > 0.025) {
+        if (((*data)[i][0] - (*data)[i-1][0]+0.1)  > 0.1) {
             ittime = (*data)[i - 1][0];
             //while time is smaller than the next one
             while (ittime < (*data)[i][0]) {
-                ittime += 0.025;
+                ittime += 0.1;
                 new_data->push_back(ittime);
             }
         }else{
@@ -1420,22 +1420,16 @@ void static_simulate(vector<vector<double>> *data,double output_voltage[],starti
 
     size_t length = new_data->size();
 
-    double dt[length-1];//,time[length];
-
+    double* dt = new double[length-1];
     double* time = new double[length];
     double* I = new double[length];
-    double* dt_= new double[length];
-    double* R0_= new double[length];
 
     for(size_t i=0;i<length;i++){
         time[i] = (*new_data)[i] -(*new_data)[0];
         I[i] = interpolate(data, time[i], true, 1);
-        R0_[i] = interpolate(data, _R0_, time[i], true);
-        if(i>0){
-            dt_[i-1] = time[i] - time[i-1];
-        }
     }
     delete new_data;
+
 
     for(size_t i=1;i<length;i++){
         dt[i-1] = time[i] - time[i-1];
@@ -1458,7 +1452,6 @@ void static_simulate(vector<vector<double>> *data,double output_voltage[],starti
     S1[0] = starting_data->starting_charge1;
     Vc[0] = starting_data->Vc;
 
-    double I_[2];
 
     OCV1[0] = polyfit(S1[0],OCV_Coef);
     OCV2[0] = polyfit(S2[0],OCV_Coef);
@@ -1466,7 +1459,10 @@ void static_simulate(vector<vector<double>> *data,double output_voltage[],starti
     I2[0] = ((OCV1[0] - Vc[0]) / Rct) - ((OCV2[0] - OCV1[0]) / Reff);
     I2_bar[0] = (OCV2[0] - OCV1[0]) / Reff;
 
-    V[0] = Vc[0] - I[0] * R0_[0];
+    V[0] = Vc[0] - I[0] * R0;
+
+
+    double newI,newOCV,Fn;
 
     for(size_t i=1;i<length;i++){
 
@@ -1477,9 +1473,10 @@ void static_simulate(vector<vector<double>> *data,double output_voltage[],starti
         OCV1[i] = polyfit(S1[i],OCV_Coef);
         OCV2[i] = polyfit(S2[i],OCV_Coef);
 
-        I_[0] = I[i - 1];
-        I_[1] = I[i];
-        Vc[i] = implicitRK4(time[i-1], Vc[i-1], dt[i-1],I_, &OCV1[i - 1], &C, &Rct,true);
+        newI =  (I[i-1] + I[i])/2.0;
+        newOCV =  (OCV1[i-1] + OCV1[i])/2.0;
+        Fn = (newOCV/(C*Rct) - newI/C);
+        Vc[i] = Vc[i-1] * exp(-dt[i-1]/(C*Rct)) + C*Rct * Fn * (1 - exp(-dt[i-1]/(C*Rct)));
 
         I2_bar[i] = (OCV2[i] - OCV1[i]) / Reff;
 
@@ -1488,7 +1485,7 @@ void static_simulate(vector<vector<double>> *data,double output_voltage[],starti
         else
             I2[i] = ((OCV1[i] - Vc[i]) / Rct) - ((OCV2[i] - OCV1[i]) / Reff);
 
-        V[i] = Vc[i] - I[i] * R0_[i];
+        V[i] = Vc[i] - I[i] * R0;
     }
 
     for(int i =0;i<data->size();i++)
@@ -1511,15 +1508,14 @@ void static_simulate(vector<vector<double>> *data,double output_voltage[],starti
     delete[] OCV2;
     delete[] S1;
     delete[] S2;
-    delete[] R0_;
 
     delete[] I;
     delete[] time;
-    delete[] dt_;
+    delete[] dt;
 
 }
 
-double static_sim_mini(vector<vector<double>> *data,starting_Params* starting_data,double Reff,double Rct,double C)
+double static_sim_mini(vector<vector<double>> *data,starting_Params* starting_data,double R0,double Reff,double Rct,double C)
 {
 
     double Q = 5.0 * 3600;
@@ -1533,11 +1529,6 @@ double static_sim_mini(vector<vector<double>> *data,starting_Params* starting_da
     double OCV2[2];
     double S1[2];
     double S2[2];
-    double _R0_[2];
-
-    for(int i=0;i<2;i++) {
-        _R0_[i] = polyfit((*data)[i][3], R0_Coef)-0.003;
-    }
 
     //calculating stuff from the previous timestep
     S2[0] = starting_data->starting_charge2;
@@ -1552,8 +1543,10 @@ double static_sim_mini(vector<vector<double>> *data,starting_Params* starting_da
     I2[0] = ((OCV1[0] - Vc[0]) / Rct) - ((OCV2[0] - OCV1[0]) / Reff);
     I2_bar[0] = (OCV2[0] - OCV1[0]) / Reff;
 
-    V[0] = Vc[0] - (*data)[0][1] * _R0_[0];
+    V[0] = Vc[0] - (*data)[0][1] * R0;
     double dt = (*data)[1][0] - (*data)[0][0];
+
+    double newI,newOCV,Fn;
     for(size_t i=1;i<2;i++){
 
         //calculating stuff from the previous timestep
@@ -1563,9 +1556,10 @@ double static_sim_mini(vector<vector<double>> *data,starting_Params* starting_da
         OCV1[i] = polyfit(S1[i],OCV_Coef);
         OCV2[i] = polyfit(S2[i],OCV_Coef);
 
-        I_[0] = (*data)[0][1];
-        I_[1] = (*data)[1][1];
-        Vc[i] = implicitRK4((*data)[0][0], Vc[i-1], dt,I_, &OCV1[i - 1], &C, &Rct,true);
+        newI =  ((*data)[i-1][1] + (*data)[i][1])/2.0;
+        newOCV =  (OCV1[i-1] + OCV1[i])/2.0;
+        Fn = (newOCV/(C*Rct) - newI/C);
+        Vc[i] = Vc[i-1] * exp(-dt/(C*Rct)) + C*Rct * Fn * (1 - exp(-dt/(C*Rct)));
 
         I2_bar[i] = (OCV2[i] - OCV1[i]) / Reff;
 
@@ -1574,7 +1568,7 @@ double static_sim_mini(vector<vector<double>> *data,starting_Params* starting_da
         else
             I2[i] = ((OCV1[i] - Vc[i]) / Rct) - ((OCV2[i] - OCV1[i]) / Reff);
 
-        V[i] = Vc[i] - (*data)[i][1] * _R0_[i];
+        V[i] = Vc[i] - (*data)[i][1] * R0;
     }
 
     return V[1];
