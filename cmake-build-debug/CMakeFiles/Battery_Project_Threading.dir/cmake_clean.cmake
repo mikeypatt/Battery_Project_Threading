@@ -1,11 +1,12 @@
 file(REMOVE_RECURSE
   "Battery_Project_Threading"
   "Battery_Project_Threading.pdb"
+  "CMakeFiles/Battery_Project_Threading.dir/dynamic_optimisation.cpp.o"
   "CMakeFiles/Battery_Project_Threading.dir/helpers.cpp.o"
   "CMakeFiles/Battery_Project_Threading.dir/implicitRK4.cpp.o"
   "CMakeFiles/Battery_Project_Threading.dir/load_data.cpp.o"
   "CMakeFiles/Battery_Project_Threading.dir/main.cpp.o"
-  "CMakeFiles/Battery_Project_Threading.dir/static_simulate.cpp.o"
+  "CMakeFiles/Battery_Project_Threading.dir/static_optimisation.cpp.o"
 )
 
 # Per-language clean rules from dependency scanning.

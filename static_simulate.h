@@ -1,9 +1,0 @@
-//
-// Created by Michael Patterson on 30/06/2020.
-//
-#ifndef IMPERIAL_BATTERY_STATIC_SIMULATE_H
-#define IMPERIAL_BATTERY_STATIC_SIMULATE_H
-
-
-
-#endif //IMPERIAL_BATTERY_STATIC_SIMULATE_H

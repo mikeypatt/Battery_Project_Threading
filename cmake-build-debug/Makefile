@@ -123,6 +123,33 @@ Battery_Project_Threading/fast:
 	$(MAKE) -f CMakeFiles/Battery_Project_Threading.dir/build.make CMakeFiles/Battery_Project_Threading.dir/build
 .PHONY : Battery_Project_Threading/fast
 
+dynamic_optimisation.o: dynamic_optimisation.cpp.o
+
+.PHONY : dynamic_optimisation.o
+
+# target to build an object file
+dynamic_optimisation.cpp.o:
+	$(MAKE) -f CMakeFiles/Battery_Project_Threading.dir/build.make CMakeFiles/Battery_Project_Threading.dir/dynamic_optimisation.cpp.o
+.PHONY : dynamic_optimisation.cpp.o
+
+dynamic_optimisation.i: dynamic_optimisation.cpp.i
+
+.PHONY : dynamic_optimisation.i
+
+# target to preprocess a source file
+dynamic_optimisation.cpp.i:
+	$(MAKE) -f CMakeFiles/Battery_Project_Threading.dir/build.make CMakeFiles/Battery_Project_Threading.dir/dynamic_optimisation.cpp.i
+.PHONY : dynamic_optimisation.cpp.i
+
+dynamic_optimisation.s: dynamic_optimisation.cpp.s
+
+.PHONY : dynamic_optimisation.s
+
+# target to generate assembly for a file
+dynamic_optimisation.cpp.s:
+	$(MAKE) -f CMakeFiles/Battery_Project_Threading.dir/build.make CMakeFiles/Battery_Project_Threading.dir/dynamic_optimisation.cpp.s
+.PHONY : dynamic_optimisation.cpp.s
+
 helpers.o: helpers.cpp.o
 
 .PHONY : helpers.o
@@ -231,32 +258,32 @@ main.cpp.s:
 	$(MAKE) -f CMakeFiles/Battery_Project_Threading.dir/build.make CMakeFiles/Battery_Project_Threading.dir/main.cpp.s
 .PHONY : main.cpp.s
 
-static_simulate.o: static_simulate.cpp.o
+static_optimisation.o: static_optimisation.cpp.o
 
-.PHONY : static_simulate.o
+.PHONY : static_optimisation.o
 
 # target to build an object file
-static_simulate.cpp.o:
-	$(MAKE) -f CMakeFiles/Battery_Project_Threading.dir/build.make CMakeFiles/Battery_Project_Threading.dir/static_simulate.cpp.o
-.PHONY : static_simulate.cpp.o
+static_optimisation.cpp.o:
+	$(MAKE) -f CMakeFiles/Battery_Project_Threading.dir/build.make CMakeFiles/Battery_Project_Threading.dir/static_optimisation.cpp.o
+.PHONY : static_optimisation.cpp.o
 
-static_simulate.i: static_simulate.cpp.i
+static_optimisation.i: static_optimisation.cpp.i
 
-.PHONY : static_simulate.i
+.PHONY : static_optimisation.i
 
 # target to preprocess a source file
-static_simulate.cpp.i:
-	$(MAKE) -f CMakeFiles/Battery_Project_Threading.dir/build.make CMakeFiles/Battery_Project_Threading.dir/static_simulate.cpp.i
-.PHONY : static_simulate.cpp.i
+static_optimisation.cpp.i:
+	$(MAKE) -f CMakeFiles/Battery_Project_Threading.dir/build.make CMakeFiles/Battery_Project_Threading.dir/static_optimisation.cpp.i
+.PHONY : static_optimisation.cpp.i
 
-static_simulate.s: static_simulate.cpp.s
+static_optimisation.s: static_optimisation.cpp.s
 
-.PHONY : static_simulate.s
+.PHONY : static_optimisation.s
 
 # target to generate assembly for a file
-static_simulate.cpp.s:
-	$(MAKE) -f CMakeFiles/Battery_Project_Threading.dir/build.make CMakeFiles/Battery_Project_Threading.dir/static_simulate.cpp.s
-.PHONY : static_simulate.cpp.s
+static_optimisation.cpp.s:
+	$(MAKE) -f CMakeFiles/Battery_Project_Threading.dir/build.make CMakeFiles/Battery_Project_Threading.dir/static_optimisation.cpp.s
+.PHONY : static_optimisation.cpp.s
 
 # Help Target
 help:
@@ -267,6 +294,9 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... Battery_Project_Threading"
+	@echo "... dynamic_optimisation.o"
+	@echo "... dynamic_optimisation.i"
+	@echo "... dynamic_optimisation.s"
 	@echo "... helpers.o"
 	@echo "... helpers.i"
 	@echo "... helpers.s"
@@ -279,9 +309,9 @@ help:
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
-	@echo "... static_simulate.o"
-	@echo "... static_simulate.i"
-	@echo "... static_simulate.s"
+	@echo "... static_optimisation.o"
+	@echo "... static_optimisation.i"
+	@echo "... static_optimisation.s"
 .PHONY : help
 
 

@@ -82,6 +82,12 @@
 				</MakeCommands>
 			</Target>
 		</Build>
+		<Unit filename="/Users/michaelpatterson/CLionProjects/Battery_Project_Threading/dynamic_optimisation.cpp">
+			<Option target="Battery_Project_Threading"/>
+		</Unit>
+		<Unit filename="/Users/michaelpatterson/CLionProjects/Battery_Project_Threading/dynamic_optimisation.h">
+			<Option target="Battery_Project_Threading"/>
+		</Unit>
 		<Unit filename="/Users/michaelpatterson/CLionProjects/Battery_Project_Threading/helpers.cpp">
 			<Option target="Battery_Project_Threading"/>
 		</Unit>
@@ -103,10 +109,10 @@
 		<Unit filename="/Users/michaelpatterson/CLionProjects/Battery_Project_Threading/main.cpp">
 			<Option target="Battery_Project_Threading"/>
 		</Unit>
-		<Unit filename="/Users/michaelpatterson/CLionProjects/Battery_Project_Threading/static_simulate.cpp">
+		<Unit filename="/Users/michaelpatterson/CLionProjects/Battery_Project_Threading/static_optimisation.cpp">
 			<Option target="Battery_Project_Threading"/>
 		</Unit>
-		<Unit filename="/Users/michaelpatterson/CLionProjects/Battery_Project_Threading/static_simulate.h">
+		<Unit filename="/Users/michaelpatterson/CLionProjects/Battery_Project_Threading/static_optimisation.h">
 			<Option target="Battery_Project_Threading"/>
 		</Unit>
 		<Unit filename="/Users/michaelpatterson/CLionProjects/Battery_Project_Threading/CMakeLists.txt">
