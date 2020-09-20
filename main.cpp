@@ -1,19 +1,13 @@
 #include <iostream>
 #include <vector>
-#include<cmath>
 #include <fstream>
 #include <random>
-#include <cctype>
 #include <algorithm>
 
 #include "load_data.h"
-#include "helpers.h"
-
-#include "static_optimisation.h"
-#include "dynamic_optimisation.h"
+#include "optimisations.h"
 
 using namespace std;
-
 
 
 int main() {
@@ -535,6 +529,7 @@ int main() {
 
     return 0;
 }
+
 
 
 

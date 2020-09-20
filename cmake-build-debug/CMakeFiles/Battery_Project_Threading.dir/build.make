@@ -109,31 +109,18 @@ CMakeFiles/Battery_Project_Threading.dir/implicitRK4.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Battery_Project_Threading.dir/implicitRK4.cpp.s"
 	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/michaelpatterson/CLionProjects/Battery_Project_Threading/implicitRK4.cpp -o CMakeFiles/Battery_Project_Threading.dir/implicitRK4.cpp.s
 
-CMakeFiles/Battery_Project_Threading.dir/static_optimisation.cpp.o: CMakeFiles/Battery_Project_Threading.dir/flags.make
-CMakeFiles/Battery_Project_Threading.dir/static_optimisation.cpp.o: ../static_optimisation.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/michaelpatterson/CLionProjects/Battery_Project_Threading/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/Battery_Project_Threading.dir/static_optimisation.cpp.o"
-	/Library/Developer/CommandLineTools/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/Battery_Project_Threading.dir/static_optimisation.cpp.o -c /Users/michaelpatterson/CLionProjects/Battery_Project_Threading/static_optimisation.cpp
+CMakeFiles/Battery_Project_Threading.dir/optimisations.cpp.o: CMakeFiles/Battery_Project_Threading.dir/flags.make
+CMakeFiles/Battery_Project_Threading.dir/optimisations.cpp.o: ../optimisations.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/michaelpatterson/CLionProjects/Battery_Project_Threading/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/Battery_Project_Threading.dir/optimisations.cpp.o"
+	/Library/Developer/CommandLineTools/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/Battery_Project_Threading.dir/optimisations.cpp.o -c /Users/michaelpatterson/CLionProjects/Battery_Project_Threading/optimisations.cpp
 
-CMakeFiles/Battery_Project_Threading.dir/static_optimisation.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Battery_Project_Threading.dir/static_optimisation.cpp.i"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/michaelpatterson/CLionProjects/Battery_Project_Threading/static_optimisation.cpp > CMakeFiles/Battery_Project_Threading.dir/static_optimisation.cpp.i
+CMakeFiles/Battery_Project_Threading.dir/optimisations.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Battery_Project_Threading.dir/optimisations.cpp.i"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/michaelpatterson/CLionProjects/Battery_Project_Threading/optimisations.cpp > CMakeFiles/Battery_Project_Threading.dir/optimisations.cpp.i
 
-CMakeFiles/Battery_Project_Threading.dir/static_optimisation.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Battery_Project_Threading.dir/static_optimisation.cpp.s"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/michaelpatterson/CLionProjects/Battery_Project_Threading/static_optimisation.cpp -o CMakeFiles/Battery_Project_Threading.dir/static_optimisation.cpp.s
-
-CMakeFiles/Battery_Project_Threading.dir/dynamic_optimisation.cpp.o: CMakeFiles/Battery_Project_Threading.dir/flags.make
-CMakeFiles/Battery_Project_Threading.dir/dynamic_optimisation.cpp.o: ../dynamic_optimisation.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/michaelpatterson/CLionProjects/Battery_Project_Threading/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/Battery_Project_Threading.dir/dynamic_optimisation.cpp.o"
-	/Library/Developer/CommandLineTools/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/Battery_Project_Threading.dir/dynamic_optimisation.cpp.o -c /Users/michaelpatterson/CLionProjects/Battery_Project_Threading/dynamic_optimisation.cpp
-
-CMakeFiles/Battery_Project_Threading.dir/dynamic_optimisation.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Battery_Project_Threading.dir/dynamic_optimisation.cpp.i"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/michaelpatterson/CLionProjects/Battery_Project_Threading/dynamic_optimisation.cpp > CMakeFiles/Battery_Project_Threading.dir/dynamic_optimisation.cpp.i
-
-CMakeFiles/Battery_Project_Threading.dir/dynamic_optimisation.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Battery_Project_Threading.dir/dynamic_optimisation.cpp.s"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/michaelpatterson/CLionProjects/Battery_Project_Threading/dynamic_optimisation.cpp -o CMakeFiles/Battery_Project_Threading.dir/dynamic_optimisation.cpp.s
+CMakeFiles/Battery_Project_Threading.dir/optimisations.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Battery_Project_Threading.dir/optimisations.cpp.s"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/michaelpatterson/CLionProjects/Battery_Project_Threading/optimisations.cpp -o CMakeFiles/Battery_Project_Threading.dir/optimisations.cpp.s
 
 # Object files for target Battery_Project_Threading
 Battery_Project_Threading_OBJECTS = \
@@ -141,8 +128,7 @@ Battery_Project_Threading_OBJECTS = \
 "CMakeFiles/Battery_Project_Threading.dir/load_data.cpp.o" \
 "CMakeFiles/Battery_Project_Threading.dir/helpers.cpp.o" \
 "CMakeFiles/Battery_Project_Threading.dir/implicitRK4.cpp.o" \
-"CMakeFiles/Battery_Project_Threading.dir/static_optimisation.cpp.o" \
-"CMakeFiles/Battery_Project_Threading.dir/dynamic_optimisation.cpp.o"
+"CMakeFiles/Battery_Project_Threading.dir/optimisations.cpp.o"
 
 # External object files for target Battery_Project_Threading
 Battery_Project_Threading_EXTERNAL_OBJECTS =
@@ -151,11 +137,10 @@ Battery_Project_Threading: CMakeFiles/Battery_Project_Threading.dir/main.cpp.o
 Battery_Project_Threading: CMakeFiles/Battery_Project_Threading.dir/load_data.cpp.o
 Battery_Project_Threading: CMakeFiles/Battery_Project_Threading.dir/helpers.cpp.o
 Battery_Project_Threading: CMakeFiles/Battery_Project_Threading.dir/implicitRK4.cpp.o
-Battery_Project_Threading: CMakeFiles/Battery_Project_Threading.dir/static_optimisation.cpp.o
-Battery_Project_Threading: CMakeFiles/Battery_Project_Threading.dir/dynamic_optimisation.cpp.o
+Battery_Project_Threading: CMakeFiles/Battery_Project_Threading.dir/optimisations.cpp.o
 Battery_Project_Threading: CMakeFiles/Battery_Project_Threading.dir/build.make
 Battery_Project_Threading: CMakeFiles/Battery_Project_Threading.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/michaelpatterson/CLionProjects/Battery_Project_Threading/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX executable Battery_Project_Threading"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/michaelpatterson/CLionProjects/Battery_Project_Threading/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Linking CXX executable Battery_Project_Threading"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/Battery_Project_Threading.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
