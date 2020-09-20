@@ -33,6 +33,8 @@ struct starting_Params{
     starting_Params(double Vc,double starting_charge1,double starting_charge2,double I2,double I2_bar):
             Vc(Vc),starting_charge1(starting_charge1),starting_charge2(starting_charge2),I2(I2),I2_bar(I2_bar){}
 };
+double static_sim_mini(std::vector<std::vector<double>> *data,starting_Params* starting_data,double R0,double Reff,double Rct,double C);
+
 
 
 struct Thread_Static{
@@ -106,7 +108,7 @@ struct optData{
 };
 
 
-double static_sim_mini(std::vector<std::vector<double>> *data,starting_Params* starting_data,double R0,double Reff,double Rct,double C);
+
 double OCV_Con(unsigned n, const double *x, double *grad, void *my_func_data){
 
     optData *d = (optData*) my_func_data;

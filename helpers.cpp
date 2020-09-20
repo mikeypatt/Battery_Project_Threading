@@ -4,6 +4,7 @@
 #include <iostream>
 #include<cmath>
 #include <vector>
+#include "helpers.h"
 
 using namespace std;
 
@@ -255,6 +256,66 @@ double Trapz(vector<vector<double>> *measured_data,double calculated_voltage[]){
         ans += ((diff_0+diff_1)/2.0) * dt;
     }
     return sqrt(ans);
+}
+
+double static_sim_mini(vector<vector<double>> *data,starting_Params* starting_data,double R0,double Reff,double Rct,double C)
+{
+
+    double Q = 5.0 * 3600;
+
+    //now for the simulation
+    double V[2];
+    double Vc[2];
+    double I2_bar[2];
+    double I2[2];
+    double OCV1[2];
+    double OCV2[2];
+    double S1[2];
+    double S2[2];
+
+    //calculating stuff from the previous timestep
+    S2[0] = starting_data->starting_charge2;
+    S1[0] = starting_data->starting_charge1;
+    Vc[0] = starting_data->Vc;
+
+    double I_[2];
+
+    OCV1[0] = polyfit(S1[0],OCV_Coef);
+    OCV2[0] = polyfit(S2[0],OCV_Coef);
+
+    I2[0] = ((OCV1[0] - Vc[0]) / Rct) - ((OCV2[0] - OCV1[0]) / Reff);
+    I2_bar[0] = (OCV2[0] - OCV1[0]) / Reff;
+
+    V[0] = Vc[0] - (*data)[0][1] * R0;
+    double dt = (*data)[1][0] - (*data)[0][0];
+
+    double newI,newOCV,Fn;
+    for(size_t i=1;i<2;i++){
+
+        //calculating stuff from the previous timestep
+        S2[i] = S2[i - 1] - dt / (Q/2.0) * I2_bar[i - 1];
+        S1[i] = S1[i - 1] - dt/ (Q/2.0) * I2[i - 1];
+
+        OCV1[i] = polyfit(S1[i],OCV_Coef);
+        OCV2[i] = polyfit(S2[i],OCV_Coef);
+
+        newI =  ((*data)[i-1][1] + (*data)[i][1])/2.0;
+        newOCV =  (OCV1[i-1] + OCV1[i])/2.0;
+        Fn = (newOCV/(C*Rct) - newI/C);
+        Vc[i] = Vc[i-1] * exp(-dt/(C*Rct)) + C*Rct * Fn * (1 - exp(-dt/(C*Rct)));
+
+        I2_bar[i] = (OCV2[i] - OCV1[i]) / Reff;
+
+        if(OCV1[i] == OCV2[i])
+            I2[i] = (*data)[i][1];
+        else
+            I2[i] = ((OCV1[i] - Vc[i]) / Rct) - ((OCV2[i] - OCV1[i]) / Reff);
+
+        V[i] = Vc[i] - (*data)[i][1] * R0;
+    }
+
+    return V[1];
+
 }
 
 
